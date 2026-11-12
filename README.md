@@ -29,4 +29,4 @@ Full policy: `00-governance/branching-policy.md` in `multi-tour-docs`.
 Job 5 of the platform, every five minutes (`REPROGRAMMING_INTERVAL`): it asks `commercial-reservation`, with its service credential,
 for the rescheduling episodes that ran out of time across tenants and asks it to apply the expiry of each one. The service decides
 which clock ran out and cancels the reservation; the job holds no deadline rule. It reads its configuration from the environment
-(`.env.example`) and a bad value stops it at start. This first piece is the module, the configuration and `/health`; the job comes next.
+(`.env.example`) and a bad value stops it at start.
