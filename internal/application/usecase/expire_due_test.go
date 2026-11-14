@@ -86,15 +86,15 @@ func TestA_expires_each_due_episode_in_its_tenant(t *testing.T) {
 
 // AC-WK-05.4: a full batch asks again and the run stops at five batches; the rest waits for the next run.
 func TestA_repeats_while_the_batch_is_full_and_stops_at_five(t *testing.T) {
-	full := dues(tenantA, "e1", "e2")
-	f := &fake{batches: [][]out.Due{full, full, full, full, full, full, full}}
+	// expired episodes leave the list, so every batch holds other episodes.
+	f := &fake{batches: [][]out.Due{dues(tenantA, "a1", "a2"), dues(tenantA, "b1", "b2"), dues(tenantA, "c1", "c2"), dues(tenantA, "d1", "d2"), dues(tenantA, "e1", "e2"), dues(tenantA, "f1", "f2")}}
 
 	job(f).Run(context.Background(), 2)
 
 	if len(f.limits) != 5 || f.limits[0] != 2 {
 		t.Errorf("limits = %v, want five lists of 2", f.limits)
 	}
-	g := &fake{batches: [][]out.Due{full, dues(tenantA, "e3")}}
+	g := &fake{batches: [][]out.Due{dues(tenantA, "e1", "e2"), dues(tenantA, "e3")}}
 	job(g).Run(context.Background(), 2)
 	if len(g.limits) != 2 {
 		t.Errorf("a batch that comes back not full ends the run: lists = %v", g.limits)
