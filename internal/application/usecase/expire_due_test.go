@@ -161,7 +161,7 @@ func TestA_a_list_that_fails_is_one_failure(t *testing.T) {
 	}
 }
 
-// AC-WK-05.7: every line carries the ids of tenant and episode, and no line carries the credential; the key is stable inside a run and new in the next.
+// AC-WK-05.7: every line carries the ids of tenant and episode, and no line carries the credential; the key names the episode alone, so it is the same in every run (the owner of the contract signed it: one expiry, one key).
 func TestA_log_lines_carry_the_correlation_id_and_never_the_token(t *testing.T) {
 	var logs bytes.Buffer
 	f := &fake{batches: [][]out.Due{dues(tenantA, "e1"), dues(tenantA, "e1")}}
@@ -176,8 +176,8 @@ func TestA_log_lines_carry_the_correlation_id_and_never_the_token(t *testing.T) 
 	if strings.Contains(strings.ToLower(logs.String()), "bearer") || strings.Contains(strings.ToLower(logs.String()), "token") {
 		t.Errorf("log = %q, the credential never appears", logs.String())
 	}
-	if f.calls[0].key == f.calls[1].key {
-		t.Errorf("another run reused the key %q", f.calls[0].key)
+	if f.calls[0].key != f.calls[1].key {
+		t.Errorf("the key of one episode changed between runs: %q then %q", f.calls[0].key, f.calls[1].key)
 	}
 	if k := f.calls[0].key; len(k) < 8 || len(k) > 128 || !strings.Contains(k, "e1") {
 		t.Errorf("key %q must be 8 to 128 characters and name the episode", k)
