@@ -36,6 +36,7 @@ func (*ExpireDue) Name() string { return "reprogramming-timers" }
 // Run lists batches of at most batch episodes and goes on while a batch comes back full, up to five batches. Each item is counted as
 // processed (expired or skipped) or failed; one failure never stops the run.
 func (j *ExpireDue) Run(ctx context.Context, batch int) (processed, failed int) {
+	seen := map[string]bool{}
 	for range maxBatches {
 		if ctx.Err() != nil {
 			break
@@ -46,14 +47,18 @@ func (j *ExpireDue) Run(ctx context.Context, batch int) (processed, failed int) 
 			j.log.WarnContext(ctx, "the due episodes could not be listed, the next run asks again", "error", err)
 			break
 		}
-		if len(due) == 0 {
+		listed := len(due)
+		due = unseen(due, seen)
+		if listed == 0 {
 			j.log.InfoContext(ctx, "none due: no rescheduling episode has a clock run out")
+		}
+		if len(due) == 0 {
 			break
 		}
 		done, bad := workerruntime.Each(ctx, j.log, due, j.expire)
 		processed, failed = processed+done, failed+bad
 		j.log.InfoContext(ctx, "rescheduling episodes swept", "listed", len(due), "handled", done, "failed", bad)
-		if len(due) < batch {
+		if listed < batch {
 			break
 		}
 	}
@@ -73,4 +78,17 @@ func (j *ExpireDue) expire(ctx context.Context, d out.Due) error {
 	}
 	j.log.InfoContext(ctx, "episode expired", "tenantId", d.TenantID, "reschedulingId", d.ReschedulingID)
 	return nil
+}
+
+// unseen drops the episodes already handled in this run: the service keeps listing an episode it answered 422 for, so asking again
+// inside the run would repeat the same call, and a full batch of them would fill every one of the batches of the run.
+func unseen(due []out.Due, seen map[string]bool) []out.Due {
+	var fresh []out.Due
+	for _, d := range due {
+		if !seen[d.ReschedulingID] {
+			seen[d.ReschedulingID] = true
+			fresh = append(fresh, d)
+		}
+	}
+	return fresh
 }

@@ -86,15 +86,15 @@ func TestA_expires_each_due_episode_in_its_tenant(t *testing.T) {
 
 // AC-WK-05.4: a full batch asks again and the run stops at five batches; the rest waits for the next run.
 func TestA_repeats_while_the_batch_is_full_and_stops_at_five(t *testing.T) {
-	full := dues(tenantA, "e1", "e2")
-	f := &fake{batches: [][]out.Due{full, full, full, full, full, full, full}}
+	// expired episodes leave the list, so every batch holds other episodes.
+	f := &fake{batches: [][]out.Due{dues(tenantA, "a1", "a2"), dues(tenantA, "b1", "b2"), dues(tenantA, "c1", "c2"), dues(tenantA, "d1", "d2"), dues(tenantA, "e1", "e2"), dues(tenantA, "f1", "f2")}}
 
 	job(f).Run(context.Background(), 2)
 
 	if len(f.limits) != 5 || f.limits[0] != 2 {
 		t.Errorf("limits = %v, want five lists of 2", f.limits)
 	}
-	g := &fake{batches: [][]out.Due{full, dues(tenantA, "e3")}}
+	g := &fake{batches: [][]out.Due{dues(tenantA, "e1", "e2"), dues(tenantA, "e3")}}
 	job(g).Run(context.Background(), 2)
 	if len(g.limits) != 2 {
 		t.Errorf("a batch that comes back not full ends the run: lists = %v", g.limits)
@@ -194,5 +194,20 @@ func TestA_a_done_context_stops_the_run(t *testing.T) {
 
 	if processed != 1 || len(f.calls) != 1 {
 		t.Fatalf("processed %d calls %d, want the run to stop after the first item", processed, len(f.calls))
+	}
+}
+
+// S3: an episode the service answers 422 for stays listed; a full batch of them must not be asked again inside the same run.
+func TestA_a_full_batch_of_skipped_episodes_is_not_repeated_inside_the_run(t *testing.T) {
+	full := dues(tenantA, "e1", "e2")
+	f := &fake{
+		batches:  [][]out.Due{full, full, full, full, full},
+		expireBy: func(string) (out.Outcome, error) { return out.Outcome{Skipped: true}, nil },
+	}
+
+	processed, failed := job(f).Run(context.Background(), 2)
+
+	if len(f.calls) != 2 || processed != 2 || failed != 0 {
+		t.Fatalf("each skipped episode must be asked once per run: %d calls, processed %d, failed %d, lists %d", len(f.calls), processed, failed, len(f.limits))
 	}
 }
