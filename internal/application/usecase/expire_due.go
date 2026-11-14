@@ -7,7 +7,6 @@ import (
 	"log/slog"
 
 	workerruntime "github.com/code-corhuila/multi-tour-worker-runtime"
-	"github.com/code-corhuila/multi-tour-worker-runtime/correlation"
 
 	"github.com/code-corhuila/multi-tour-worker-reprogramming-timers/internal/application/port/out"
 )
@@ -65,9 +64,9 @@ func (j *ExpireDue) Run(ctx context.Context, batch int) (processed, failed int) 
 	return processed, failed
 }
 
-// expire asks for the expiry. The key names the episode and the run: a retry inside the run repeats it, while a later run asks again.
+// expire asks for the expiry. The key names the episode alone: one expiry, one key, so a retry in this run and a repeat in a later run are the same request.
 func (j *ExpireDue) expire(ctx context.Context, d out.Due) error {
-	key := fmt.Sprintf("expiry-%s-%s", d.ReschedulingID, correlation.From(ctx))
+	key := fmt.Sprintf("expiry-%s", d.ReschedulingID)
 	outcome, err := j.episodes.Expire(ctx, d.TenantID, d.ReschedulingID, key)
 	if err != nil {
 		return fmt.Errorf("expire episode %s of tenant %s: %w", d.ReschedulingID, d.TenantID, err)
