@@ -5,6 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-18
+
+Minor release after 3.0.0. The entry below is a pull request merged into `qa` and re-applied to `release/3.1.0` with `git cherry-pick -x`; it names no user story, so it is grouped under the story of this component, and the entry is the title of the pull request without its type. The frozen head of `qa` is `d5eda7067dd8ebff4b15038636014682932737c0`.
+
+### Changed
+
+#### HU-WRK-005 - Enforce the reprogramming deadlines
+
+- Add how to start and test to the readme and the pr template ([PR 18](https://github.com/code-corhuila/multi-tour-worker-reprogramming-timers/pull/18))
+
 ## [3.0.0] - 2026-11-14
 
 Cut 3 release. Every entry below is a pull request merged into `qa` and re-applied to `release/3.0.0` with `git cherry-pick -x`; the heading of each group is the user story named in the pull request, and the entry is the title of the pull request without its type. The frozen head of `qa` is `a6cc2aeca08bef23eae808dbab87f27cba08e7a4`.
@@ -26,5 +36,6 @@ Cut 3 release. Every entry below is a pull request merged into `qa` and re-appli
 - Ask each due episode once per run ([PR 11](https://github.com/code-corhuila/multi-tour-worker-reprogramming-timers/pull/11))
 - Make the expiry idempotency key stable per episode ([PR 13](https://github.com/code-corhuila/multi-tour-worker-reprogramming-timers/pull/13))
 
-[Unreleased]: https://github.com/code-corhuila/multi-tour-worker-reprogramming-timers/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/code-corhuila/multi-tour-worker-reprogramming-timers/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/code-corhuila/multi-tour-worker-reprogramming-timers/releases/tag/v3.1.0
 [3.0.0]: https://github.com/code-corhuila/multi-tour-worker-reprogramming-timers/releases/tag/v3.0.0
